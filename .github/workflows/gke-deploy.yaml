@@ -53,11 +53,6 @@ jobs:
           cluster_name: ${{ inputs.gke_cluster }}
           location: ${{ inputs.gke_region }}
 
-      # Configure Docker to use the gcloud command-line tool as a credential
-      # helper for authentication
-      - run: |-
-          gcloud --quiet auth configure-docker
-
       # Deploy k8s objects to the GKE cluster
       - name: Deploy to GKE
         run: |-
