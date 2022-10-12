@@ -1,0 +1,47 @@
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      container_registry_name:
+        required: false
+        type: string
+        default: ghcr.io
+      deployment_tag: # ${{ inputs.deployment_tag }}
+        required: true
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # permissions:
+    #   contents: read
+    #   packages: write
+    #   # This is used to complete the identity challenge
+    #   # with sigstore/fulcio when running outside of PRs.
+    #   id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log into registry ${{ inputs.container_registry_name }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.container_registry_name }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete older images
+        id: delete-old-images
+        uses: snok/container-retention-policy@main
+        with:
+          image-names: ${{ github.event.repository.name }}  # image name = repo name
+          cut-off: now UTC+1
+          account-type: org
+          org-name: cardano-sos
+          skip-tags: main
+          keep-at-least: 2
+          token: ${{ secrets.RM_IMAGE_TOKEN }}
