@@ -1,16 +1,16 @@
 on:
   workflow_call:
     inputs:
-      image_name:
+      repo_name:
         required: true
         type: string
       container_registry_name:
         required: false
         type: string
         default: ghcr.io
-      deployment_tag: # ${{ inputs.deployment_tag }}
+    secrets:
+      rm_image_token:
         required: true
-        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,10 +38,10 @@ jobs:
         id: delete-old-images
         uses: snok/container-retention-policy@main
         with:
-          image-names: ${{ github.event.repository.name }}  # image name = repo name
+          image-names: ${{ inputs.repo_name}}
           cut-off: now UTC+1
           account-type: org
           org-name: cardano-sos
           skip-tags: main
-          keep-at-least: 2
-          token: ${{ secrets.RM_IMAGE_TOKEN }}
+          keep-at-least: 5
+          token: ${{ secrets.rm_image_token }}
