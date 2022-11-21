@@ -1,0 +1,60 @@
+name: reusable-mongodb-backup
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: false
+        type: string
+      container_registry_name:
+        required: false
+        type: string
+        default: ghcr.io
+    secrets:
+      DB_BACKUP_SSH_HOST:
+        required: true
+      DB_BACKUP_SSH_USERNAME:
+        required: true
+      DB_BACKUP_SSH_PASSWORD:
+        required: true
+      DB_BACKUP_SSH_KEY:
+        required: true
+      MONGODB_USERNAME:
+        required: true
+      MONGODB_PASSWORD:
+        required: true
+      DB_HOST:
+        required: true
+      DB_NAME:
+        required: true
+jobs:
+  mongodb-backup:
+    name: MongoDB backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Backup Mongo DB
+        uses: valerianpereira/backup-action@master
+        with:
+          host: ${{ secrets.DB_BACKUP_SSH_HOST }}
+          username: ${{ secrets.DB_BACKUP_SSH_USERNAME }} # Defaults to root
+          password: ${{ secrets.DB_BACKUP_SSH_PASSWORD }}
+          #port: ${{ secrets.DB_BACKUP_SSH_PORT }} # default 22
+          key: ${{ secrets.DB_BACKUP_SSH_KEY }}
+          type: db   #type: type of backup to be triggered (directory or db)
+          db_type: mongo   # eg: mongo / postgres / mysql
+          db_user: ${{ secrets.MONGODB_USERNAME }}
+          db_pass: ${{ secrets.MONGODB_PASSWORD }}
+          db_port: 27017
+          db_host: ${{ secrets.DB_HOST }}
+          # auth_db: ${{ secrets.authenticationDatabase }} # Required for Mongo DB v4.4.0 - Defaults to admin
+          db_name: ${{ secrets.DB_NAME }}
+
+      - name: Push Backups to Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: mongodb-backup
+          path: /github/workspace/backups/
