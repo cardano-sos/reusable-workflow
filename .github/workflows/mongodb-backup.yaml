@@ -40,7 +40,7 @@ jobs:
         uses: valerianpereira/backup-action@master
         with:
           host: ${{ secrets.DB_BACKUP_SSH_HOST }}
-          username: ${{ secrets.DB_BACKUP_SSH_USERNAME }} # Defaults to root
+          username: ${{ secrets.DB_BACKUP_SSH_USERNAME }}
           password: ${{ secrets.DB_BACKUP_SSH_PASSWORD }}
           #port: ${{ secrets.DB_BACKUP_SSH_PORT }} # default 22
           key: ${{ secrets.DB_BACKUP_SSH_KEY }}
